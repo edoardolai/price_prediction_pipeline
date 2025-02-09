@@ -1,0 +1,4 @@
+apache-airflow==2.10.4
+apache-airflow-providers-postgres
+psycopg2-binary
+apache-airflow-providers-docker

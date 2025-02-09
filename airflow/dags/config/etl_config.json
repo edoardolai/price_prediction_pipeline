@@ -1,0 +1,22 @@
+{
+    "data_dirs": {
+        "raw": "/opt/airflow/data/raw",
+        "processed": "/opt/airflow/data/processed",
+        "artifacts": "/opt/airflow/data/artifacts"
+    },
+    "property_types": [
+        "house",
+        "apartment"
+    ],
+    "model": {
+        "batch_size": 256,
+        "num_epochs": 500,
+        "learning_rate": 0.004,
+        "weight_decay": 0.001,
+        "early_stopping_patience": 20,
+        "district_emb_dim": 8,
+        "property_emb_dim": 4,
+        "dropout_rate": 0.15
+    },
+    "schedule_interval": "0 0 * * *"
+}

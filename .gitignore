@@ -1,0 +1,30 @@
+# Environment files
+.env
+.env.*
+!.env.template
+venv/
+
+# Docker compose
+docker-compose.yaml
+!docker-compose.template.yaml
+
+# Airflow
+logs/
+airflow.cfg
+airflow.db
+webserver_config.py
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Airflow
+airflow.cfg
+airflow.db
+airflow-webserver.pid
+logs/
+webserver_config.py
+
+#tokens
+services/scraper/src/config.json

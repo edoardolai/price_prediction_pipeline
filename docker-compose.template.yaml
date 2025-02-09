@@ -1,0 +1,112 @@
+---
+x-airflow-common:
+  &airflow-common
+  build:
+    context: .
+    dockerfile: airflow/Dockerfile
+  environment:
+    &airflow-common-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
+    AIRFLOW__CORE__FERNET_KEY: ''
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+    AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
+  volumes:
+    - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
+    - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
+    - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
+    - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
+    - ./services:/opt/airflow/services
+    - type: volume
+      source: airflow_data
+      target: /opt/airflow/data
+    - type: volume
+      source: airflow_config
+      target: /opt/airflow/dags/config
+    - /var/run/docker.sock:/var/run/docker.sock
+  user: "${AIRFLOW_UID:-50000}:0"
+  depends_on:
+    &airflow-common-depends-on
+    postgres:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: always
+
+  scraper:
+    build:
+      context: ./services/scraper
+      dockerfile: Dockerfile
+    volumes:
+      - ./data:/app/data
+      - ./airflow/dags/config:/app/airflow/dags/config
+    networks:
+      - airflow
+
+  cleaner:
+    build:
+      context: ./services/cleaner
+      dockerfile: Dockerfile
+    volumes:
+      - ./data:/app/data
+      - ./airflow/dags/config:/app/airflow/dags/config
+    networks:
+      - airflow
+
+  trainer:
+    build:
+      context: ./services/trainer
+      dockerfile: Dockerfile
+    volumes:
+      - ./data:/app/data
+      - ./airflow/dags/config:/app/airflow/dags/config
+    networks:
+      - airflow
+
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: always
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8974/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: always
+
+networks:
+  airflow:
+    driver: bridge
+
+volumes:
+  postgres-db-volume:
+  airflow_data:
+    name: price_prediction_pipeline_airflow_data
+  airflow_config:
+    name: price_prediction_pipeline_airflow_config
