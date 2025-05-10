@@ -42,10 +42,10 @@ POSTGRES_PASSWORD=your_password
 POSTGRES_DB=airflow
 AIRFLOW_IMAGE_NAME=apache/airflow:2.10.4
 ```
-1. ## Airflow Configuration
+ ## Airflow Configuration
   The docker-compose.yaml configures Airflow with LocalExecutor
-  Mounts necessary volumes for dags, logs, and configuration
-2. ## Scraper Configuration
+  Mounts necessary volumes for dags, logs, and configuration.
+ ## Scraper Configuration
   Edit config.json with required tokens:
 ``` bash
 {
@@ -71,10 +71,14 @@ docker-compose up -d
   Toggle the switch to enable it
 
 ## Services
-Scraper: Collects property data
-Cleaner: Processes and cleanses data
-Trainer: Trains ML model
-Deployment: Web interface for predictions (Not added to the dag yet, needs some rework)
+<ul>
+  <li>Scraper: Collects property data</li>
+  <li>Cleaner: Processes and cleanses data</li>
+  <li>Trainer: Trains ML model</li>
+  <li>Deployment: Web interface for predictions (Not added to the dag yet, needs some rework)</li>
+
+
+</ul>
 
 ## Volumes
 The pipeline uses Docker volumes for:
